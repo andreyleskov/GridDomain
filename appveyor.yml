@@ -97,6 +97,7 @@ test_script:
     runTests UnitTests GridDomain.Tests.Unit
     runTests ClusterUnitTests GridDomain.Tests.Unit.Cluster
     runTests AcceptanceTests GridDomain.Tests.Acceptance
+    runTests ScenarioTests GridDomain.Scenarios.Tests
 
     #curl -sflL 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-ssh.sh' | bash -e -
 
