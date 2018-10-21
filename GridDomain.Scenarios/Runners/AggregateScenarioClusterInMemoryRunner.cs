@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using GridDomain.EventSourcing;
@@ -16,9 +17,9 @@ namespace GridDomain.Scenarios.Runners {
     
     public class AggregateScenarioClusterInMemoryRunner<TAggregate> : IAggregateScenarioRunner<TAggregate> where TAggregate : class, IAggregate
     {
-        private readonly IExtendedGridDomainNode[] _nodes;
+        private readonly IReadOnlyCollection<IExtendedGridDomainNode> _nodes;
 
-        public AggregateScenarioClusterInMemoryRunner(IExtendedGridDomainNode[] nodes)
+        public AggregateScenarioClusterInMemoryRunner(IReadOnlyCollection<IExtendedGridDomainNode> nodes)
         {
             _nodes = nodes;
         }

@@ -17,6 +17,8 @@ using GridDomain.Node.Actors.CommandPipe.MessageProcessors;
 using GridDomain.Node.Actors.CommandPipe.Messages;
 using GridDomain.Node.Actors.Hadlers;
 using GridDomain.Node.Actors.ProcessManagers;
+using GridDomain.Node.Configuration;
+using GridDomain.Node.Configuration.Composition;
 using GridDomain.ProcessManagers.DomainBind;
 using GridDomain.ProcessManagers.State;
 
@@ -52,11 +54,22 @@ namespace GridDomain.Node
         public IActorRef ProcessesPipeActor { get; private set; }
         public IActorRef HandlersPipeActor { get; private set; }
         public IActorRef CommandExecutor { get; internal set; }
-        private List<Action> _postponedRegistrations = new List<Action>();
+        public IContainerConfiguration Prepare()
+        {
+            return new ContainerConfiguration(c =>
+                                              {
+                                                  c.RegisterInstance(HandlersPipeActor)
+                                                                        .Named<IActorRef>(Actors.CommandPipe.HandlersPipeActor.CustomHandlersProcessActorRegistrationName);
+                                                  c.RegisterInstance(ProcessesPipeActor)
+                                                                        .Named<IActorRef>(Actors.CommandPipe.ProcessesPipeActor.ProcessManagersPipeActorRegistrationName);
+                                              });
+        }
+
+        private readonly List<Action> _actorProducers = new List<Action>();
         
         public Task RegisterAggregate(IAggregateCommandsHandlerDescriptor descriptor)
         {
-            _postponedRegistrations.Add(() =>
+            _actorProducers.Add(() =>
                                         {
                                             StartAggregate(descriptor);
                                         });
@@ -73,7 +86,7 @@ namespace GridDomain.Node
 
         public Task RegisterProcess(IProcessDescriptor processDescriptor, string name = null)
         {
-            _postponedRegistrations.Add(() =>
+            _actorProducers.Add(() =>
                                         {
                                             StartProcess(processDescriptor,name);
                                         });
@@ -102,15 +115,14 @@ namespace GridDomain.Node
             return RegisterHandler<TMessage, THandler>(actor => new ActorAskMessageProcessor<HandlerExecuted>(actor));
         }
 
-        public Task RegisterFireAndForgetHandler<TMessage, THandler>() where THandler : IHandler<TMessage>
-                                                                       where TMessage : class, IHaveProcessId, IHaveId
+        public Task RegisterFireAndForgetHandler<TMessage, THandler>() where THandler : IHandler<TMessage> where TMessage : class, IHaveProcessId, IHaveId
         {
             return RegisterHandler<TMessage, THandler>(actor => new FireAndForgetActorMessageProcessor(actor));
         }
 
-        public Task StartRoutes()
+        public Task Start()
         {
-            foreach (var postponed in _postponedRegistrations)
+            foreach (var postponed in _actorProducers)
                 postponed();
 
             return ProcessesPipeActor.Ask<Initialized>(new Initialize(CommandExecutor));
@@ -119,7 +131,7 @@ namespace GridDomain.Node
         private Task RegisterHandler<TMessage, THandler>(Func<IActorRef, IMessageProcessor> processorCreator) where THandler : IHandler<TMessage>
                                                                                                               where TMessage : class, IHaveProcessId, IHaveId
         {
-            _postponedRegistrations.Add(() =>
+            _actorProducers.Add(() =>
                                         {
                                             var handlerActorType = typeof(MessageHandleActor<TMessage, THandler>);
                                             var handlerActor = CreateDIActor(handlerActorType, handlerActorType.BeautyName());
@@ -145,14 +157,6 @@ namespace GridDomain.Node
         public void Dispose()
         {
             System.Dispose();
-        }
-
-        public void Register(ContainerBuilder container)
-        {
-            container.RegisterInstance(HandlersPipeActor)
-                     .Named<IActorRef>(Actors.CommandPipe.HandlersPipeActor.CustomHandlersProcessActorRegistrationName);
-            container.RegisterInstance(ProcessesPipeActor)
-                     .Named<IActorRef>(Actors.CommandPipe.ProcessesPipeActor.ProcessManagersPipeActorRegistrationName);
         }
     }
 }

@@ -64,14 +64,14 @@ namespace GridDomain.Tests.Unit.Cluster
 
         public IActorCommandPipe Pipe => Node.Pipe;
 
-        public Task<IGridDomainNode> Start()
+        public async Task<IGridDomainNode> Start()
         {
-            return Node.Start();
+            return await Node.Start();
         }
 
-        public Task Stop()
+        public async Task Stop()
         {
-            return Node.Stop();
+            await Node.Stop();
         }
 
         public ILogger Log => Node.Log;

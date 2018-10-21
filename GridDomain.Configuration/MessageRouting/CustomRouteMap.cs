@@ -11,8 +11,15 @@ namespace GridDomain.Configuration.MessageRouting
 
         public CustomRouteMap(params Func<IMessagesRouter, Task>[] routeRules)
         {
-            _routeRules = routeRules.ToList();
+            if (routeRules == null || !routeRules.Any())
+                throw new EmptyRouteMapException();
+
+             _routeRules = routeRules.ToList();
         }
+
+        class
+            EmptyRouteMapException : Exception { }
+
         public CustomRouteMap(string name, params Func<IMessagesRouter, Task>[] routeRules):this(routeRules)
         {
             Name = name;

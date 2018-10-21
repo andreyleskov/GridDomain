@@ -20,12 +20,15 @@ using GridDomain.EventSourcing;
 using GridDomain.Node.Actors.Aggregates;
 using GridDomain.Node.Actors.ProcessManagers;
 using GridDomain.Node.Cluster.CommandPipe.CommandGrouping;
+using GridDomain.Node.Configuration;
+using GridDomain.Node.Configuration.Composition;
 using GridDomain.ProcessManagers.DomainBind;
 using GridDomain.ProcessManagers.State;
 using GridDomain.Transport.Extension;
 using Serilog;
 
 namespace GridDomain.Node.Cluster.CommandPipe
+
 {
     public class ClusterCommandPipe : IActorCommandPipe
     {
@@ -33,6 +36,32 @@ namespace GridDomain.Node.Cluster.CommandPipe
         public IActorRef ProcessesPipeActor { get; private set; }
         public IActorRef HandlersPipeActor { get; private set; }
         public IActorRef CommandExecutor { get; protected set; }
+        public IContainerConfiguration Prepare()
+        {
+            return new ContainerConfiguration(c =>
+                                              {
+                                                  c.RegisterType<ClusterProcessPipeActor>()
+                                                                        .WithParameters(new Parameter[]
+                                                                                        {
+                                                                                            new TypedParameter(typeof(IReadOnlyCollection<IProcessDescriptor>), _processDescriptors),
+                                                                                            //{akka://AutoTest/user/Aggregates}
+                                                                                            new TypedParameter(typeof(string), "/user/Aggregates")
+                                                                                        });
+
+                                                  c.RegisterType<ClusterHandlersPipeActor>()
+                                                                        .WithParameters(new Parameter[]
+                                                                                        {
+                                                                                            new TypedParameter(typeof(MessageMap), _messageMap),
+                                                                                            new TypedParameter(typeof(string), "/user/Processes")
+                                                                                        });
+
+                                                  c.Register((c1, p) => ProcessesPipeActor)
+                                                                        .Named<IActorRef>(Actors.CommandPipe.ProcessesPipeActor.ProcessManagersPipeActorRegistrationName);
+
+                                                  c.Register((c2, p) => HandlersPipeActor)
+                                                                        .Named<IActorRef>(Actors.CommandPipe.HandlersPipeActor.CustomHandlersProcessActorRegistrationName);
+                                              });
+        }
 
         readonly Dictionary<string, IActorRef> _aggregatesRegions = new Dictionary<string, IActorRef>();
         readonly List<string> _processAggregatesRegionPaths = new List<string>();
@@ -126,7 +155,7 @@ namespace GridDomain.Node.Cluster.CommandPipe
             return _messageMap.RegisterFireAndForget<TMessage, THandler>();
         }
 
-        public async Task StartRoutes()
+        public async Task Start()
         {
             foreach (var delayed in _delayedRegistrations)
                 await delayed();
@@ -208,30 +237,6 @@ namespace GridDomain.Node.Cluster.CommandPipe
         public void Dispose()
         {
             System.Dispose();
-        }
-
-        public void Register(ContainerBuilder container)
-        {
-            container.RegisterType<ClusterProcessPipeActor>()
-                     .WithParameters(new Parameter[]
-                                     {
-                                         new TypedParameter(typeof(IReadOnlyCollection<IProcessDescriptor>), _processDescriptors),
-                                         //{akka://AutoTest/user/Aggregates}
-                                         new TypedParameter(typeof(string), "/user/Aggregates")
-                                     });
-
-            container.RegisterType<ClusterHandlersPipeActor>()
-                     .WithParameters(new Parameter[]
-                                     {
-                                         new TypedParameter(typeof(MessageMap), _messageMap),
-                                         new TypedParameter(typeof(string), "/user/Processes")
-                                     });
-
-            container.Register((c, p) => ProcessesPipeActor)
-                     .Named<IActorRef>(Actors.CommandPipe.ProcessesPipeActor.ProcessManagersPipeActorRegistrationName);
-
-            container.Register((c, p) => HandlersPipeActor)
-                     .Named<IActorRef>(Actors.CommandPipe.HandlersPipeActor.CustomHandlersProcessActorRegistrationName);
         }
     }
 }

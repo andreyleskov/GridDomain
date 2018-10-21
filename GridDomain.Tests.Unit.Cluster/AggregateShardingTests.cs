@@ -78,31 +78,31 @@ namespace GridDomain.Tests.Unit.Cluster
         {
             var nodes = new List<IGridDomainNode>();
 
-            var clusterInfo = await new ActorSystemConfigBuilder()
-                                    .EmitLogLevel(LogEventLevel.Verbose)
-                                    .DomainSerialization()
-                                    .Cluster(clusterName)
-                                    .AutoSeeds(2)
-                                    .Workers(2)
-                                    .Build()
-                                    .OnClusterUp(async s =>
-                                                 {
-                                                     try
-                                                     {
-                                                         var fixture = new BalloonFixture(_testOutputHelper).LogToFile(logFileName);
-                                                         var node = await fixture.CreateNode(() => s);
-                                                         nodes.Add(node);
-                                                     }
-                                                     catch (Exception ex)
-                                                     {
-                                                         var errorLogger = new LoggerConfiguration().WriteToFile(LogEventLevel.Verbose, logFileName)
-                                                                                                    .CreateLogger();
-                                                         errorLogger.Error(ex, "Error during grid node creation for cluster");
-                                                     }
-                                                 })
-                                    .CreateInTime();
+            var clusterInfo = new ActorSystemConfigBuilder()
+                              .EmitLogLevel(LogEventLevel.Verbose)
+                              .DomainSerialization()
+                              .Cluster(clusterName)
+                              .AutoSeeds(2)
+                              .Workers(2)
+                              .Build();
 
-            return new ClusterNodes(nodes, clusterInfo);
+
+            var clusterInf = await clusterInfo.CreateInTime();
+
+            try
+            {
+                var fixture = new BalloonFixture(_testOutputHelper).LogToFile(logFileName);
+                var node = await fixture.CreateNode(() => clusterInf.Systems.First());
+                nodes.Add(node);
+            }
+            catch (Exception ex)
+            {
+                var errorLogger = new LoggerConfiguration().WriteToFile(LogEventLevel.Verbose, logFileName)
+                                                           .CreateLogger();
+                errorLogger.Error(ex, "Error during grid node creation for cluster");
+            }
+
+            return new ClusterNodes(nodes, clusterInf);
         }
     }
 }

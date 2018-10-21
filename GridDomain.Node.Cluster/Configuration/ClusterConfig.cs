@@ -50,11 +50,11 @@ namespace GridDomain.Node.Cluster.Configuration
             _workerNodes.AddRange(configBuilder);
         }
 
-        public ClusterConfig OnClusterUp(Func<ActorSystem, Task> sys)
-        {
-            _onMemberUp.Add(sys);
-            return this;
-        }
+//        public ClusterConfig OnClusterUp(Func<ActorSystem, Task> sys)
+//        {
+//            _onMemberUp.Add(sys);
+//            return this;
+//        }
 
         public ClusterConfig Log(Func<ActorSystem,ILogger> logProduser)
         {
@@ -109,20 +109,17 @@ namespace GridDomain.Node.Cluster.Configuration
                                                      .ToArray();
 
             var allActorSystems = seedSystems.Concat(autoSeedSystems)
-                                             .Concat(workerSystems);
+                                             .Concat(workerSystems)
+                                             .ToArray();
 
             var leader = seedSystems.FirstOrDefault() ?? throw new CannotDetermineLeaderException();
 
-            TaskCompletionSource<bool> clusterReady = new TaskCompletionSource<bool>(false);
+            var clusterReady = new TaskCompletionSource<bool>(false);
 
+            
             var akkaCluster = Akka.Cluster.Cluster.Get(leader);
             akkaCluster.RegisterOnMemberUp(() =>
                                            {
-                                               foreach (var systemBuilder in allActorSystems)
-                                               {
-                                                   PerformOnMemberUp(systemBuilder).Wait();
-                                               }
-
                                                clusterReady.SetResult(true);
                                            });
 
@@ -133,11 +130,17 @@ namespace GridDomain.Node.Cluster.Configuration
                 await akkaCluster.JoinAsync(address);
 
             await clusterReady.Task;
-
+            
+            foreach (var systemBuilder in allActorSystems)
+            {
+               await PerformOnMemberUp(systemBuilder);
+            }
+            
             return new ClusterInfo(akkaCluster,
                                    seedSystemAddresses.Concat(autoSeedAddresses)
                                                       .Concat(workerSystemAddresses)
-                                                      .ToArray());
+                                                      .ToArray(),
+                                   allActorSystems);
         }
 
         private async Task<ActorSystem[]> CreateSystems(IReadOnlyCollection<IActorSystemConfigBuilder> actorSystemBuilders, Func<ActorSystem, Task> init)

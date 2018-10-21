@@ -35,9 +35,12 @@ namespace GridDomain.Tests.Unit.Cluster.ClusterConf {
                                                              .AutoSeeds(1)
                                                              .Workers(1)
                                                              .Build()
-                                                             .OnClusterUp(StartMessageProducer)
                                                              .CreateInTime())
             {
+
+                foreach (var system in akkaCluster.Systems)
+                    await StartMessageProducer(system);
+
                 var transport = akkaCluster.Cluster.System.InitDistributedTransport().Transport;
                 var inbox = Inbox.Create(akkaCluster.Cluster.System);
 
@@ -45,7 +48,6 @@ namespace GridDomain.Tests.Unit.Cluster.ClusterConf {
                 var addressesToWait = akkaCluster.Members.ToList();
                 
                 await WaitForAddressesConfirmation(addressesToWait, inbox);
-                //   .TimeoutAfter(TimeSpan.FromSeconds(10));
             }
         }
 

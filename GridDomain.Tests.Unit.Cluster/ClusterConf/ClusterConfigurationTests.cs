@@ -122,9 +122,13 @@ namespace GridDomain.Tests.Unit.Cluster.ClusterConf
                                            .Workers(1)
                                            .Build()
                                            .Log(s => logger)
-                                           .OnClusterUp(ActivateShardRegion)
                                            .CreateInTime())
             {
+                foreach (var system in akkaCluster.Systems)
+                {
+                   await ActivateShardRegion(system);
+                }
+                
                 await CheckClusterCanHostAnActor(akkaCluster);
             }
         }
@@ -141,9 +145,13 @@ namespace GridDomain.Tests.Unit.Cluster.ClusterConf
                                            .Workers(2)
                                            .Build()
                                            .Log(s => logger)
-                                           .OnClusterUp(ActivateShardRegion)
                                            .CreateInTime())
             {
+                foreach (var system in akkaCluster.Systems)
+                {
+                    await ActivateShardRegion(system);
+                }
+                
                 await CheckClusterCanHostAnActor(akkaCluster);
             }
         }

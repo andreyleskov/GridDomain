@@ -8,6 +8,20 @@ using Serilog;
 
 namespace GridDomain.Node.Cluster 
 {
+    public static class GridNodeBuilderExtensions
+    {
+        public static ClusterNodeBuilder Cluster(this GridNodeBuilder builder)
+        {
+            return new ClusterNodeBuilder(builder);
+        }
+        
+        public static ClusterNodeBuilder Node(this GridNodeBuilder builder)
+        {
+            var clusterNodeBuilder = new ClusterNodeBuilder(builder);
+            
+            return clusterNodeBuilder;
+        }
+    }
     public class ClusterNodeBuilder : IGridNodeBuilder
     {
         private readonly GridNodeBuilder _builder;

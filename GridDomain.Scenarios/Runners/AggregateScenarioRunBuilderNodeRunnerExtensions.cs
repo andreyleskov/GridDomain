@@ -17,8 +17,6 @@ using Serilog.Events;
 
 namespace GridDomain.Scenarios.Runners
 {
-
-
     public static class AggregateScenarioRunBuilderNodeRunnerExtensions
     {
         public static async Task<IAggregateScenarioRun<TAggregate>> Node<TAggregate>(this IAggregateScenarioRunBuilder<TAggregate> builder,
@@ -28,7 +26,6 @@ namespace GridDomain.Scenarios.Runners
             where TAggregate : class, IAggregate
         {
             var name = "NodeScenario" + typeof(TAggregate).BeautyName();
-            var nodes = new List<IExtendedGridDomainNode>();
 
             var actorSystemConfigBuilder = new ActorSystemConfigBuilder()
                                            .EmitLogLevel(LogEventLevel.Verbose, true)
@@ -37,29 +34,24 @@ namespace GridDomain.Scenarios.Runners
                 actorSystemConfigBuilder = actorSystemConfigBuilder.SqlPersistence(new DefaultNodeDbConfiguration(sqlPersistenceConnectionString));
 
             var clusterConfig = actorSystemConfigBuilder
-                                .Cluster(name ?? "ClusterAggregateScenario" + typeof(TAggregate).BeautyName())
+                                .Cluster(name)
                                 .AutoSeeds(1)
                                 .Build()
-                                .Log(s => logger)
-                                .OnClusterUp(async s =>
-                                             {
-                                                 var ext = s.GetExtension<LoggingExtension>();
-                                                 var node = new ClusterNodeBuilder()
-                                                            .ActorSystem(() => s)
-                                                            .DomainConfigurations(domainConfig)
-                                                            .Log(ext.Logger)
-                                                            .Build();
-                                                 nodes.Add(node);
-                                                 await node.Start();
-                                             });
+                                .Log(s => logger);
 
-            using (await clusterConfig.CreateCluster())
+            using (var clusterInfo = await clusterConfig.CreateCluster())
             {
-                var runner = new AggregateScenarioNodeRunner<TAggregate>(nodes.First());
+                var node = new ClusterNodeBuilder()
+                           .ActorSystem(() => clusterInfo.Systems.First())
+                           .DomainConfigurations(domainConfig)
+                           .Log(logger)
+                           .Build();
 
-                var run = await runner.Run(builder.Scenario);
+                await node.Start();
 
-                return run;
+                var runner = new AggregateScenarioNodeRunner<TAggregate>(node);
+
+                return await runner.Run(builder.Scenario);
             }
         }
 
@@ -71,8 +63,6 @@ namespace GridDomain.Scenarios.Runners
                                                                                         int workers = 2,
                                                                                         string name = null) where TAggregate : class, IAggregate
         {
-            var nodes = new List<IExtendedGridDomainNode>();
-
             var clusterConfig = new ActorSystemConfigBuilder()
                                 .EmitLogLevel(LogEventLevel.Verbose, true)
                                 .DomainSerialization()
@@ -86,36 +76,26 @@ namespace GridDomain.Scenarios.Runners
                                                        "GridNodeSystem"
                                                        + s.GetAddress()
                                                           .Port)
-                                          .CreateLogger())
-                                .AdditionalInit(async s =>
-                                                {
-                                                    var ext = s.GetExtension<LoggingExtension>();
-                                                    var node = new ClusterNodeBuilder()
-                                                               .ActorSystem(() => s)
-                                                               .DomainConfigurations(domainConfig)
-                                                               .Log(ext.Logger)
-                                                               .Build();
-
-                                                    nodes.Add(node);
-                                                    await node.Start();
-                                                });
-//                                .OnClusterUp(async s =>
-//                                             {
-//                                                 var ext = s.GetExtension<LoggingExtension>();
-//                                                 var node = new ClusterNodeBuilder()
-//                                                            .ActorSystem(() => s)
-//                                                            .DomainConfigurations(domainConfig)
-//                                                            .Log(ext.Logger)
-//                                                            .Build();
-//
-//                                                 nodes.Add(node);
-//                                                 await node.Start();
-//                                             });
+                                          .CreateLogger());
 
 
-            using (await clusterConfig.CreateCluster())
+            using (var clusterInfo = await clusterConfig.CreateCluster())
             {
-                var runner = new AggregateScenarioNodeRunner<TAggregate>(nodes.First());
+                IExtendedGridDomainNode node = null;
+                foreach (var system in clusterInfo.Systems)
+                {
+                    var ext = system.GetExtension<LoggingExtension>();
+                    node = new GridNodeBuilder()
+                               .Cluster()
+                               .ActorSystem(() => system)
+                               .DomainConfigurations(domainConfig)
+                               .Log(ext.Logger)
+                               .Build();
+
+                    await node.Start();
+                }
+                    
+                var runner = new AggregateScenarioNodeRunner<TAggregate>(node);
 
                 var run = await runner.Run(builder.Scenario);
 
@@ -130,7 +110,6 @@ namespace GridDomain.Scenarios.Runners
                                                                                         int workers = 2,
                                                                                         string name = null) where TAggregate : class, IAggregate
         {
-            var nodes = new List<IExtendedGridDomainNode>();
 
             var clusterConfig = new ActorSystemConfigBuilder()
                                 .EmitLogLevel(LogEventLevel.Verbose, true)
@@ -144,24 +123,26 @@ namespace GridDomain.Scenarios.Runners
                                                        "GridNodeSystem"
                                                        + s.GetAddress()
                                                           .Port)
-                                          .CreateLogger())
-                                .OnClusterUp(async s =>
-                                             {
-                                                 var ext = s.GetExtension<LoggingExtension>();
-                                                 var node = new ClusterNodeBuilder()
-                                                            .ActorSystem(() => s)
-                                                            .DomainConfigurations(domainConfig)
-                                                            .Log(ext.Logger)
-                                                            .Build();
-
-                                                 nodes.Add(node);
-                                                 await node.Start();
-                                             });
-
-
-            using (await clusterConfig.CreateCluster())
+                                          .CreateLogger());
+                            
+            using (var clusterInfo = await clusterConfig.CreateCluster())
             {
-                var runner = new AggregateScenarioClusterInMemoryRunner<TAggregate>(nodes.ToArray());
+                var nodes = new List<IExtendedGridDomainNode>();
+                foreach (var system in clusterInfo.Systems)
+                {
+                    var ext = system.GetExtension<LoggingExtension>();
+                    var node = new GridNodeBuilder()
+                                                   .Cluster()
+                                                   .ActorSystem(() => system)
+                                                   .DomainConfigurations(domainConfig)
+                                                   .Log(ext.Logger)
+                                                   .Build();
+
+                    await node.Start();
+                    nodes.Add(node);
+                }
+                    
+                var runner = new AggregateScenarioClusterInMemoryRunner<TAggregate>(nodes);
 
                 var run = await runner.Run(builder.Scenario);
 

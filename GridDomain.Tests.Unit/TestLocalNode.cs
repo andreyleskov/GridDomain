@@ -61,9 +61,9 @@ namespace GridDomain.Tests.Unit {
         public IActorTransport Transport => Node.Transport;
 
         public IActorCommandPipe Pipe => Node.Pipe;
-        public Task<IGridDomainNode> Start()
+        public async Task<IGridDomainNode> Start()
         {
-            return Node.Start();
+            return  await Node.Start();
         }
 
         public Task Stop()

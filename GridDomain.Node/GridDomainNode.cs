@@ -8,6 +8,7 @@ using Akka.DI.Core;
 using Autofac;
 using GridDomain.Common;
 using GridDomain.Configuration;
+using GridDomain.Configuration.MessageRouting;
 using GridDomain.CQRS;
 using GridDomain.EventSourcing.Adapters;
 using GridDomain.Node.Actors;
@@ -113,13 +114,15 @@ namespace GridDomain.Node {
             Log.Information("Starting GridDomain node {Id}", Id);
             
             var domainBuilder = InitDomainBuilder();
-
-            await ConfigureDomain(domainBuilder);
             
+            Pipe = CreateCommandPipe();
+
+            BuildContainer(domainBuilder,Pipe);
+            
+            await ConfigureMessageRoutes(domainBuilder, Pipe);
+
             _commandExecutor = CreateCommandExecutor();
 
-            BuildContainer(domainBuilder);
-            
             await StartMessageRouting();
 
             await CreateControllerActor();
@@ -130,12 +133,12 @@ namespace GridDomain.Node {
 
         protected virtual async Task StartMessageRouting()
         {
-            await Pipe.StartRoutes();
+            await Pipe.Start();
         }
 
-        protected virtual async Task ConfigureDomain(DomainBuilder domainBuilder)
+        protected virtual async Task ConfigureMessageRoutes(DomainBuilder domainBuilder, IMessagesRouter router)
         {
-            await domainBuilder.Configure(Pipe);
+            await domainBuilder.Configure(router);
         }
         
 
@@ -146,18 +149,16 @@ namespace GridDomain.Node {
             await nodeController.Ask<GridNodeController.Alive>(GridNodeController.HeartBeat.Instance);
         }
 
-        protected void BuildContainer(DomainBuilder domainBuilder)
+        protected void BuildContainer(DomainBuilder domainBuilder, IActorCommandPipe pipe)
         {
             var containerBuilder = new ContainerBuilder();
             containerBuilder.Register(new GridNodeContainerConfiguration(Context));
-
+            containerBuilder.Register(pipe.Prepare());
+            
             System.InitDomainEventsSerialization(EventsAdaptersCatalog);
 
             domainBuilder.Configure(containerBuilder);
 
-            containerBuilder.RegisterInstance(_commandExecutor);
-            containerBuilder.Register(Pipe);
-            
             Container = containerBuilder.Build();
             System.AddDependencyResolver(new AutoFacDependencyResolver(Container, System));
         }
@@ -167,7 +168,6 @@ namespace GridDomain.Node {
             _stopping = false;
 
             System = _actorSystemFactory.CreateSystem();
-            Pipe = CreateCommandPipe();
 
             System.RegisterOnTermination(OnSystemTermination);
             Transport = CreateTransport();

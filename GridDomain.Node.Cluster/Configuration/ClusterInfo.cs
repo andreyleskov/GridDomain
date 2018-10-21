@@ -11,9 +11,14 @@ namespace GridDomain.Node.Cluster.Configuration
     public class ClusterInfo : IDisposable
     {
         private readonly ILogger _logger;
+        public readonly IReadOnlyCollection<ActorSystem> Systems;
 
-        public ClusterInfo(Akka.Cluster.Cluster cluster, IReadOnlyCollection<Address> members, ILogger logger=null)
+        public ClusterInfo(Akka.Cluster.Cluster cluster, 
+                          IReadOnlyCollection<Address> members, 
+                          IReadOnlyCollection<ActorSystem> systems,
+                          ILogger logger=null)
         {
+            Systems = systems;
             _logger = logger ?? Serilog.Log.Logger;
             Cluster = cluster;
             Members = members;
