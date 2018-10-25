@@ -41,8 +41,6 @@ namespace GridDomain.Node.Configuration.Composition
 
             var persistentChildsRecycleConfiguration = ProcessDependencyFactory.StateDependencies.RecycleConfiguration;
             container.Register<ProcessHubActor<TState>>(c => new ProcessHubActor<TState>(persistentChildsRecycleConfiguration, ProcessDependencyFactory.ProcessName));
-
-
         }
 
         protected virtual Parameter[] CreateParametersRegistration()

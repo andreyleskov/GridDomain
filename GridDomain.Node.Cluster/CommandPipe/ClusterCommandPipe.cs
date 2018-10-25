@@ -126,7 +126,7 @@ namespace GridDomain.Node.Cluster.CommandPipe
 
                                           await RegisterAggregateByType(aggregateType, actorType);
 
-                                          var processActorType = typeof(ClusterProcessActorCell<>).MakeGenericType(processDescriptor.StateType);
+                                          var processActorType = typeof(ClusterProcessActor<>).MakeGenericType(processDescriptor.StateType);
 
                                           var region = await ClusterSharding.Get(System)
                                                                             .StartAsync(Known.Names.Region(processDescriptor.ProcessType),
