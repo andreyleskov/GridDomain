@@ -17,11 +17,11 @@ using Xunit.Abstractions;
 
 namespace GridDomain.Scenarios.Tests
 {
-    public class AggregateScenarioTests : ScenarioRunnerTest
+    public abstract class AggregateScenarioTests : ScenarioRunnerTest
     {
 
         protected AggregateScenarioTests(ITestOutputHelper output) : base(output) { }
-
+                                                                                                      
       
         [Fact]
         public async Task When_defined_aggregate_handler_then_it_can_execute_commands_and_produce_events_with_builder()
