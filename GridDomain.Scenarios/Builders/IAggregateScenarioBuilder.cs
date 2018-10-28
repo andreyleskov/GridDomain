@@ -11,6 +11,7 @@ namespace GridDomain.Scenarios.Builders {
         IAggregateScenarioBuilder<T> When(params Command[] commands);
         IAggregateScenarioBuilder<T> Then(params DomainEvent[] expectedEvents);
         IAggregateScenarioBuilder<T> With(IAggregateDependencies<T> dependencies);
+        IAggregateScenarioBuilder<T> Name(string name);
         IAggregateScenarioRunBuilder<T> Run { get; }
     }
 }

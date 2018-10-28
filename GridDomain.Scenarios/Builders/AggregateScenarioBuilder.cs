@@ -1,3 +1,4 @@
+using System;
 using GridDomain.Configuration;
 using GridDomain.CQRS;
 using GridDomain.EventSourcing;
@@ -12,11 +13,23 @@ namespace GridDomain.Scenarios.Builders
         private Command[] _commands = { };
         private DomainEvent[] _expectedEvents = { };
         private IAggregateDependencies<T> _aggregateDependencies;
+        private string _name = "AggregateScenario_"+typeof(T).Name;
 
         public IAggregateScenario<T> Build()
         {
-            return new AggregateScenario<T>(_domainEvents, _commands, _expectedEvents, _aggregateDependencies ?? new AggregateDependenciesBuilder<T>(this).Build());
+            return new AggregateScenario<T>(_domainEvents, _commands, _expectedEvents, _aggregateDependencies ?? new AggregateDependenciesBuilder<T>(this).Build(),_name);
         }
+
+        public IAggregateScenarioBuilder<T> Name(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new InvalidScenarioNameException();
+
+            _name = name;
+            return this;
+        }
+
+        public class InvalidScenarioNameException : Exception { }
 
         public IAggregateScenarioBuilder<T> Given(params DomainEvent[] events)
         {

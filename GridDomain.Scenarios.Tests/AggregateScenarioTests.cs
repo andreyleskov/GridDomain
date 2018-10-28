@@ -30,6 +30,7 @@ namespace GridDomain.Scenarios.Tests
                                   .ToString();
 
             var scenario = new AggregateScenarioBuilder<Balloon>()
+                           .Name(nameof(When_defined_aggregate_handler_then_it_can_execute_commands_and_produce_events_with_builder))
                            .With(new BalloonDependencies())
                            .When(new InflateNewBallonCommand(42, aggregateId))
                            .Then(new BalloonCreated("42", aggregateId));
@@ -58,6 +59,7 @@ namespace GridDomain.Scenarios.Tests
                                   .ToString();
 
             var scenario = AggregateScenario.New<Balloon>()
+                                            .Name(nameof(When_defined_aggregate_handler_then_it_can_execute_commands_and_produce_events_with_explicit_runner))
                                             .With(new BalloonDependencies())
                                             .When(new InflateNewBallonCommand(42, aggregateId))
                                             .Then(new BalloonCreated("42", aggregateId));
@@ -86,6 +88,7 @@ namespace GridDomain.Scenarios.Tests
 
 
             var scenario = AggregateScenario.New<Balloon>()
+                                            .Name(nameof(When_defined_aggregate_handler_then_it_can_execute_commands_and_produce_events))
                                             .With(new BalloonDependencies())
                                             .When(new InflateNewBallonCommand(42, aggregateId))
                                             .Then(new BalloonCreated("42", aggregateId));
@@ -112,6 +115,7 @@ namespace GridDomain.Scenarios.Tests
                                   .ToString();
 
             var scenario = AggregateScenario.New<Balloon>()
+                                            .Name(nameof(Future_events_aggregate_can_be_tested))
                                             .With(new BalloonDependencies())
                                             .When(new InflateNewBallonCommand(42, aggregateId))
                                             .Then(new BalloonCreated("42", aggregateId));
@@ -136,6 +140,7 @@ namespace GridDomain.Scenarios.Tests
             var aggregateId = "personA";
 
             var scenarioBuilder = AggregateScenario.New<ProgrammerAggregate>()
+                                                   .Name(nameof(When_defined_scenario_has_given_it_is_applied_even_without_command))
                                                    .Given(new PersonCreated(aggregateId, aggregateId));
 
             var scenario = await Run(scenarioBuilder);
@@ -154,6 +159,7 @@ namespace GridDomain.Scenarios.Tests
             var aggregateId = "personA";
             var factory = AggregateDependencies.ForCommandAggregate<ProgrammerAggregate>();
             var scenarioBuilder = AggregateScenario.New<ProgrammerAggregate>()
+                                                   .Name(nameof(When_aggregate_has_custom_dependency_factory_scenario_can_use_it))
                                                    .With(factory)
                                                    .Given(new PersonCreated(aggregateId, aggregateId));
 
@@ -172,6 +178,7 @@ namespace GridDomain.Scenarios.Tests
             var aggregateId = "personA";
 
             var scenario = AggregateScenario.New(new AggregateDependencies<ProgrammerAggregate>())
+                                            .Name(nameof(Given_factory_When_defined_scenario_has_given_it_is_applied_even_without_command))
                                             .Given(new PersonCreated(aggregateId, aggregateId));
 
             var run = await Run(scenario);
@@ -189,6 +196,7 @@ namespace GridDomain.Scenarios.Tests
             var aggregateId = "personA";
 
             var builder = AggregateScenario.New<Balloon>()
+                                           .Name(nameof(When_defined_scenario_it_checks_for_produced_events_properties))
                                            .With(new BalloonDependencies())
                                            .When(new InflateNewBallonCommand(42, aggregateId))
                                            .Then(new BalloonCreated("420", aggregateId));
@@ -208,6 +216,7 @@ namespace GridDomain.Scenarios.Tests
                                   .ToString();
 
             var aggregateScenarioBuilder = AggregateScenario.New<Balloon>()
+                                                            .Name(nameof(When_defined_scenario_it_checks_for_produced_events_count))
                                                             .With(new BalloonDependencies())
                                                             .When(new InflateNewBallonCommand(42, aggregateId))
                                                             .Then(new BalloonCreated("420", aggregateId),
@@ -225,6 +234,7 @@ namespace GridDomain.Scenarios.Tests
             var aggregateId = "test_aggregate";
 
             var aggregateScenarioBuilder = AggregateScenario.New<Balloon>()
+                                                            .Name(nameof(When_defined_scenario_try_execute_missing_command_on_default_handler_it_throws_exception))
                                                             .With(new BalloonDependencies())
                                                             .When(new CreateBalanceCommand(42, aggregateId))
                                                             .Then(new BalloonCreated("420", aggregateId),
@@ -243,6 +253,7 @@ namespace GridDomain.Scenarios.Tests
                                   .ToString();
 
             var aggregateScenarioBuilder = AggregateScenario.New<Balloon>()
+                                                            .Name(nameof(When_defined_scenario_executes_command_with_exception_it_throws_command_exception))
                                                             .With(new BalloonDependencies())
                                                             .When(new PlanTitleWriteAndBlowCommand(43, aggregateId, TimeSpan.FromMilliseconds(50)));
 

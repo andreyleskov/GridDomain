@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Akka.Actor;
 using GridDomain.Common;
 using GridDomain.Configuration;
 using GridDomain.EventSourcing.CommonDomain;
@@ -105,7 +106,7 @@ namespace GridDomain.Scenarios.Runners
 
         public static async Task<IAggregateScenarioRun<TAggregate>> Cluster<TAggregate>(this IAggregateScenarioRunBuilder<TAggregate> builder,
                                                                                         IDomainConfiguration domainConfig,
-                                                                                        Func<LoggerConfiguration> logConfigurationFactory = null,
+                                                                                        Func<ActorSystem,LoggerConfiguration> logConfigurationFactory = null,
                                                                                         int autoSeeds = 2,
                                                                                         int workers = 2,
                                                                                         string name = null) where TAggregate : class, IAggregate
@@ -118,11 +119,7 @@ namespace GridDomain.Scenarios.Runners
                                 .AutoSeeds(autoSeeds)
                                 .Workers(workers)
                                 .Build()
-                                .Log(s => (logConfigurationFactory ?? (() => new LoggerConfiguration()))()
-                                          .WriteToFile(LogEventLevel.Verbose,
-                                                       "GridNodeSystem"
-                                                       + s.GetAddress()
-                                                          .Port)
+                                .Log(s => (logConfigurationFactory == null ? new LoggerConfiguration() : logConfigurationFactory(s))
                                           .CreateLogger());
                             
             using (var clusterInfo = await clusterConfig.CreateCluster())

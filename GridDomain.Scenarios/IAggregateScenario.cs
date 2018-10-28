@@ -3,6 +3,7 @@ using GridDomain.Configuration;
 using GridDomain.CQRS;
 using GridDomain.EventSourcing;
 using GridDomain.EventSourcing.CommonDomain;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace GridDomain.Scenarios 
 {
@@ -12,6 +13,7 @@ namespace GridDomain.Scenarios
         IReadOnlyCollection<DomainEvent> GivenEvents { get; }
         IReadOnlyCollection<ICommand> GivenCommands { get; }
         string AggregateId { get; }
+        string Name { get;}
     }
 
 

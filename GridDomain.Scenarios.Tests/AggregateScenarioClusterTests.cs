@@ -1,12 +1,16 @@
 ﻿using System.Threading.Tasks;
 using GridDomain.Configuration;
+using GridDomain.Node;
+using GridDomain.Node.Cluster;
 using GridDomain.Scenarios.Runners;
 using GridDomain.Tests.Unit;
 using GridDomain.Tests.Unit.BalloonDomain.Configuration;
 using GridDomain.Tests.Unit.ProcessManagers.SoftwareProgrammingDomain;
+using Serilog.Events;
 using Xunit.Abstractions;
 
-namespace GridDomain.Scenarios.Tests {
+namespace GridDomain.Scenarios.Tests
+{
     public class AggregateScenarioClusterTests : AggregateScenarioTests
     {
         private readonly ITestOutputHelper _output;
@@ -15,7 +19,10 @@ namespace GridDomain.Scenarios.Tests {
         {
             return scenario.Run()
                            .Cluster(new DomainConfiguration(new BalloonDomainConfiguration(),
-                                                            new ProgrammerAggregateDomainConfiguration()),() =>new XUnitAutoTestLoggerConfiguration(_output));
+                                                            new ProgrammerAggregateDomainConfiguration()),
+                                    s => new XUnitAutoTestLoggerConfiguration(_output,
+                                                                              LogEventLevel.Information,
+                                                                              $"{scenario.Name}/{s.Name}_{s.GetAddress().Port}"));
         }
 
         public AggregateScenarioClusterTests(ITestOutputHelper output) : base(output)

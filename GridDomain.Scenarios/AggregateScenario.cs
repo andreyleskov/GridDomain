@@ -13,12 +13,15 @@ namespace GridDomain.Scenarios
         public AggregateScenario(IReadOnlyCollection<DomainEvent> givenEvents,
                                  IReadOnlyCollection<ICommand> givenCommands,
                                  IReadOnlyCollection<DomainEvent> expectedEvents,
-                                 IAggregateDependencies<T> factory) : base(givenEvents, givenCommands, expectedEvents)
+                                 IAggregateDependencies<T> factory,
+                                 string name) : base(givenEvents, givenCommands, expectedEvents, name)
         {
             Dependencies = factory;
         }
         public IAggregateDependencies<T> Dependencies { get; }
     }
+
+
 
     public class AggregateScenario : IAggregateScenario
     {
@@ -35,11 +38,13 @@ namespace GridDomain.Scenarios
 
         public AggregateScenario(IReadOnlyCollection<DomainEvent> givenEvents,
                                  IReadOnlyCollection<ICommand> givenCommands,
-                                 IReadOnlyCollection<DomainEvent> expectedEvents)
+                                 IReadOnlyCollection<DomainEvent> expectedEvents,
+                                 string name)
         {
             GivenEvents = givenEvents;
             GivenCommands = givenCommands;
             ExpectedEvents = expectedEvents;
+            Name = name;
 
             string commandAggregateId = null;
             string eventsAggregateId = null;
@@ -83,5 +88,7 @@ namespace GridDomain.Scenarios
         public IReadOnlyCollection<DomainEvent> GivenEvents { get; }
         public IReadOnlyCollection<ICommand> GivenCommands { get; }
         public string AggregateId { get; }
+
+        public string Name { get; }
     }
 }
