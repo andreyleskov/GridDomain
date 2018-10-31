@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.IO;
+using System.Threading.Tasks;
 using GridDomain.Configuration;
 using GridDomain.Node;
 using GridDomain.Node.Cluster;
@@ -22,7 +23,7 @@ namespace GridDomain.Scenarios.Tests
                                                             new ProgrammerAggregateDomainConfiguration()),
                                     s => new XUnitAutoTestLoggerConfiguration(_output,
                                                                               LogEventLevel.Information,
-                                                                              $"{scenario.Name}/{s.Name}_{s.GetAddress().Port}"));
+                                                                              Path.Combine(scenario.Name,$"{s.Name}_{s.GetAddress().Port}")));
         }
 
         public AggregateScenarioClusterTests(ITestOutputHelper output) : base(output)
