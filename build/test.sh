@@ -17,7 +17,7 @@
 
       if [ $TestResult -ne 0 ];then
          echo should exit...
-            exit $TestResult
+            exit #$TestResult
       fi
       echo continue 
 
