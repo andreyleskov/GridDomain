@@ -60,28 +60,6 @@ build_script:
 test_script:
 - sh: |
     
-    runTests()
-    {
-      testsName=$1
-      testsFolder=$2
-      cd $testsFolder
-      dotnet test --no-build --configuration Release --no-restore --logger trx > TestsOutput.txt
-      TestResult=$?
-      path=~/projects/griddomain-mdlr7/"$testsFolder"/bin/Release/netcoreapp2.0/Logs/*
-      echo $path
-
-      zip -j -r ./"$testsName"Output.zip ./TestResults/*
-      zip -j -r ./"$testsName"Logs.zip ./bin/Release/netcoreapp2.0/Logs/*
-
-      if [ $TestResult -ne 0 ];then
-         echo should exiting...
-            #exit #$TestResult
-      fi
-      echo continue 
-      cd ..
-    }
-
-    #ls 
     sqlcmd -S localhost -U SA -P 'Password12!' -Q 'select @@VERSION'
 
     sqlcmd -S localhost -U SA -P "Password12!" -Q "Use [master]; CREATE DATABASE [AutoTestRead];"
@@ -94,14 +72,16 @@ test_script:
 
     sqlcmd -S localhost -U SA -P "Password12!" -i GridDomain.Scheduling/CreateDatabase.sql
 
-    runTests UnitTests GridDomain.Tests.Unit
-    runTests ClusterUnitTests GridDomain.Tests.Unit.Cluster
-    runTests AcceptanceTests GridDomain.Tests.Acceptance
-    runTests ScenarioTests GridDomain.Scenarios.Tests
-
+ 
     #curl -sflL 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-ssh.sh' | bash -e -
 
-    runTests ClusterAcceptanceTests GridDomain.Tests.Acceptance.Cluster
+    . ./build/test.sh
+
+    runTests UnitTests GridDomain.Tests.Unit Release
+    runTests ClusterUnitTests GridDomain.Tests.Unit.Cluster Release
+    runTests AcceptanceTests GridDomain.Tests.Acceptance Release
+    runTests ScenarioTests GridDomain.Scenarios.Tests Release
+    runTests ClusterAcceptanceTests GridDomain.Tests.Acceptance.Cluster Release
 
 
 artifacts:
