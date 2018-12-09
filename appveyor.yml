@@ -5,42 +5,24 @@ branches:
 image: Ubuntu
 
 install:
+- sh: |
+    
+    . ./build/git_versioning.sh
+
+    export APP_VERSION=${version}
+    export FILE_VERSION=${fileVersion}
+    export INFORMATIONAL_VERSION=${informationVersion}
 - ps: |
-    $tag_version = git describe --tags --abbrev=0
-    $tag_version -match "^(?<major>\d+)(\.(?<minor>\d+))?(\.(?<patch>\d+))?(\-(?<pre>[0-9A-Za-z\-\.]+))?(\+(?<build>[0-9A-Za-z\-\.]+))?$" | Out-Null
-    echo "Got tag $tag_version from git"
+    Update-AppveyorBuild -Version $env:APP_VERSION
 
-    $major = [int]$matches['major']
-    $minor = [int]$matches['minor']
-    $patch = [int]$matches['patch']
-    $pre = [string]$matches['pre']
-
-    $build_number = $env:APPVEYOR_BUILD_NUMBER
-    echo "Got build number $build_number from appveyor"
-
-    $fullVersion = "$tag_version+$build_number"
-
-    if($pre){
-      echo "Found a preview version, will add build number to it"
-      $fullVersion = "$tag_version-$build_number"
-    }
-
-
-    $env:APP_VERSION = "$major.$minor.$patch"
-
-    echo "Set APP_VERSION environment variable to $env:APP_VERSION"
-
-    echo "Full version is $fullVersion"
-
-    Update-AppveyorBuild -Version $fullVersion
 dotnet_csproj:
   patch: true
   file: '**\*.csproj'
-  version: '{version}'
-  package_version: '{version}'
+  version: '$(APP_VERSION)'
+  package_version: '$(APP_VERSION)'
   assembly_version: '$(app_version)'
-  file_version: '$(app_version).{build}'
-  informational_version: '$(app_version)'
+  file_version: '$(FILE_VERSION)'
+  informational_version: '$(INFORMATIONAL_VERSION)'
 environment:
   APPVEYOR_SSH_KEY: ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBI7S8beSMm0ePKq3CM3r4a0W/7OU+cwb8ZPyMoeeTtz0q0sPHoO1psD1jPh/2+v8UKToLdDJxhtxbkNTv8WeVME=
   APPVEYOR_SSH_BLOCK: true
@@ -50,10 +32,10 @@ environment:
 services: mssql
 build_script:
 - sh: |
-    #curl -sflL 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-ssh.sh' | bash -e -
+    # #curl -sflL 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-ssh.sh' | bash -e -
     
-    printenv APPVEYOR_BUILD_VERSION
-    printenv APP_VERSION
+   # printenv APPVEYOR_BUILD_VERSION
+   # printenv APP_VERSION
     
     dotnet build GridDomain.sln -c Release -v Minimal /l:"/opt/appveyor/build-agent/AppVeyor.MSBuildLogger.dll"
     dotnet pack GridDomain.sln -c Release -v Minimal --include-symbols --include-source --no-build /l:"/opt/appveyor/build-agent/AppVeyor.MSBuildLogger.dll"
