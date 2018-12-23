@@ -12,9 +12,14 @@ install:
     export APP_VERSION=${version}
     export FILE_VERSION=${fileVersion}
     export INFORMATIONAL_VERSION=${informationVersion}
+
+    echo "exported app version is $APP_VERSION"
+    echo "exported file version is $FILE_VERSION"
+    echo "exported info version is $INFORMATIONAL_VERSION"
+
 - ps: Update-AppveyorBuild -Version $env:APP_VERSION
 dotnet_csproj:
-  patch: true
+  patch: false
   file: '**\*.csproj'
   version: '$(APP_VERSION)'
   package_version: '$(APP_VERSION)'
