@@ -47,7 +47,6 @@ namespace GridDomain.Node.Cluster.CommandPipe
                                                                                             //{akka://AutoTest/user/Aggregates}
                                                                                             new TypedParameter(typeof(string), "/user/Aggregates")
                                                                                         });
-
                                                   c.RegisterType<ClusterHandlersPipeActor>()
                                                                         .WithParameters(new Parameter[]
                                                                                         {
@@ -82,7 +81,7 @@ namespace GridDomain.Node.Cluster.CommandPipe
         public Task RegisterAggregate(IAggregateCommandsHandlerDescriptor descriptor)
         {
             Type aggregateType = descriptor.AggregateType;
-            _delayedRegistrations.Add(() => RegisterAggregateByType(aggregateType, typeof(ClusterAggregateActor<>).MakeGenericType(aggregateType)));
+            _delayedRegistrations.Add(() => RegisterAggregateByType(aggregateType, typeof(ClusterAggregateActorCell<>).MakeGenericType(aggregateType)));
             return Task.CompletedTask;
         }
 
@@ -104,8 +103,8 @@ namespace GridDomain.Node.Cluster.CommandPipe
             
             var region = await ClusterSharding.Get(System)
                                               .StartAsync(Known.Names.Region(aggregateType),
-                                                          System.DI()
-                                                                .Props(actorType)
+                                                         
+                                                                Props.Create(actorType)
                                                                 .WithSupervisorStrategy(supervisionPolicy),
                                                           ClusterShardingSettings.Create(System),
                                                           new ShardedMessageMetadataExtractor());
@@ -188,10 +187,9 @@ namespace GridDomain.Node.Cluster.CommandPipe
                                      throw new InvalidMessageException(m.ToString());
                                  });
 
-            var processesProps = System.DI()
-                                       .Props(typeof(ClusterProcessPipeActor));
+            var processesProps = Props.Create<ClusterProcessPipeActorCell>().WithRouter(routingGroup);
 
-            ProcessesPipeActor = System.ActorOf(processesProps.WithRouter(routingGroup), "Processes");
+            ProcessesPipeActor = System.ActorOf(processesProps, "Processes");
         }
 
         private void BuildMessageHandlers()
@@ -209,7 +207,6 @@ namespace GridDomain.Node.Cluster.CommandPipe
                                  });
 
             var clusterRouterPool = new ClusterRouterPool(routingPool, new ClusterRouterPoolSettings(10, 1, true));
-
             var handlerActorProps = Props.Create<ClusterHandlersPipeActorCell>()
                                           .WithRouter(clusterRouterPool);
 

@@ -29,8 +29,8 @@ namespace GridDomain.Tests.Unit
                 .Filter.ByExcluding(Matching.WithProperty<string>("Class", s => s.Contains("LocalActorRef")))
                 .Filter.ByExcluding(Matching.WithProperty<string>("Class", s => s.Contains("DummyClassForStringSources")))
                 .Filter.ByExcluding(Matching.WithProperty<string>("Class", s => s.Contains("ShardRegion")))
-                .Filter.ByExcluding(Matching.WithProperty<string>("Class", s => s.Contains("PersistentShardCoordinator")));
-               // .Filter.ByExcluding(Matching.WithProperty<string>("Class", s => s.Contains("CoordinatedShutdown")));
+                .Filter.ByExcluding(Matching.WithProperty<string>("Class", s => s.Contains("PersistentShardCoordinator")))
+                .Filter.ByExcluding(Matching.WithProperty<string>("Class", s => s.Contains("CoordinatedShutdown")));
         }
 
         

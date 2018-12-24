@@ -21,21 +21,17 @@ namespace GridDomain.Node.Cluster.CommandPipe {
     
     public class DICellActor<TResident> : UntypedActor where TResident : ActorBase
     {
-        private readonly IActorRef _handler;                       
+        private readonly Lazy<IActorRef> _handler;                       
 
         public DICellActor(string residentName=null)
         {
-            var diActorSystemAdapter = Context.System.DI();
-            
-            var props = diActorSystemAdapter
-                               .Props<TResident>();
-
-            _handler = Context.ActorOf(props,residentName ?? "Resident");
+            _handler = new Lazy<IActorRef>(()=>Context.ActorOf(Context.System.DI()
+                                                                      .Props<TResident>(),residentName ?? "Resident"));
         }
 
         protected override void OnReceive(object message)
         {
-            _handler.Forward(message);
+            _handler.Value.Forward(message);
         }
     }
     

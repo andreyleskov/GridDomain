@@ -25,8 +25,8 @@ namespace GridDomain.Node.Cluster {
             configBuilder.Add(new PubSubConfig());
            // configBuilder.Add(new PubSubSerializerConfig());
           //  configBuilder.Add(new CustomConfig(@"akka.remote={}"));
-          //  configBuilder.Add(new ClusterSingletonInternalMessagesSerializerConfig());
-          //  configBuilder.Add(new ClusterShardingMessagesSerializerConfig());
+            configBuilder.Add(new ClusterSingletonInternalMessagesSerializerConfig());
+            configBuilder.Add(new ClusterShardingMessagesSerializerConfig());
           //  configBuilder.Add(new HyperionForAll());
             configBuilder.Add(new ClusterActorProviderConfig());
            // builder.Add(new AutoTerminateProcessOnClusterShutdown());

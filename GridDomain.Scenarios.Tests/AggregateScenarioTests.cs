@@ -249,13 +249,10 @@ namespace GridDomain.Scenarios.Tests
         [Fact]
         public async Task When_defined_scenario_executes_command_with_exception_it_throws_command_exception()
         {
-            var aggregateId = Guid.NewGuid()
-                                  .ToString();
-
             var aggregateScenarioBuilder = AggregateScenario.New<Balloon>()
                                                             .Name(nameof(When_defined_scenario_executes_command_with_exception_it_throws_command_exception))
                                                             .With(new BalloonDependencies())
-                                                            .When(new PlanTitleWriteAndBlowCommand(43, aggregateId, TimeSpan.FromMilliseconds(50)));
+                                                            .When(new PlanTitleWriteAndBlowCommand(43, "testAggregate1", TimeSpan.FromMilliseconds(50)));
 
             var local = Run(aggregateScenarioBuilder);
             await local

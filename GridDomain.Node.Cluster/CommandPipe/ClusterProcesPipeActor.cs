@@ -18,10 +18,11 @@ using Serilog;
 namespace GridDomain.Node.Cluster.CommandPipe
 {
 
-    public class ClusterProcessActorCell<T> : DICellActor<ClusterProcessActor<T>> where T : class, IProcessState {
-        
+    public class ClusterProcessPipeActorCell : DICellActor<ClusterProcessPipeActor> 
+    {
+       
     }
-    
+
     public class ClusterProcessPipeActor : ProcessesPipeActor, IWithUnboundedStash
     {
 

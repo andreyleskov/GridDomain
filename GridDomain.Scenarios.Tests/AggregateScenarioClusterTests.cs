@@ -12,6 +12,9 @@ using Xunit.Abstractions;
 
 namespace GridDomain.Scenarios.Tests
 {
+
+
+    
     public class AggregateScenarioClusterTests : AggregateScenarioTests
     {
         private readonly ITestOutputHelper _output;
@@ -22,8 +25,9 @@ namespace GridDomain.Scenarios.Tests
                            .Cluster(new DomainConfiguration(new BalloonDomainConfiguration(),
                                                             new ProgrammerAggregateDomainConfiguration()),
                                     s => new XUnitAutoTestLoggerConfiguration(_output,
-                                                                              LogEventLevel.Information,
-                                                                              Path.Combine(scenario.Name,$"{s.Name}_{s.GetAddress().Port}")));
+                                                                              LogEventLevel.Verbose,
+                                                                              Path.Combine(scenario.Name,s.GetDefaultLogFileName())))
+                ;
         }
 
         public AggregateScenarioClusterTests(ITestOutputHelper output) : base(output)

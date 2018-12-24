@@ -7,10 +7,12 @@ using LogEvent = Akka.Event.LogEvent;
 
 namespace GridDomain.Node.Logging
 {
+
+
     public class SerilogLoggerActor : ReceiveActor,
                                       IRequiresMessageQueue<ILoggerMessageQueueSemantics>
     {
-        private readonly ILogger _logger;
+        protected ILogger _logger;
      //   public static ILogger Log { get; set; }
 
         public SerilogLoggerActor() : this(Serilog.Log.Logger) { }
@@ -28,10 +30,16 @@ namespace GridDomain.Node.Logging
             Receive<Debug>(m => Handle(m));
             Receive<InitializeLogger>(m =>
                                       {
-                                          Context.GetLogger().Info("SerilogLoggerActor started");
-                                          m.LoggingBus.Subscribe(Self, typeof(LogEvent));
-                                          Sender.Tell(new LoggerInitialized());
+                                          Initialize(m);
                                       });
+        }
+
+        protected virtual void Initialize(InitializeLogger m)
+        {
+            Context.GetLogger()
+                   .Info("SerilogLoggerActor started");
+            m.LoggingBus.Subscribe(Self, typeof(LogEvent));
+            Sender.Tell(new LoggerInitialized());
         }
 
         private static string GetFormat(object message)

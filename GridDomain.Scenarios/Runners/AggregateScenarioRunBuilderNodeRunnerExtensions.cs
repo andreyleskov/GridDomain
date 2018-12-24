@@ -65,7 +65,7 @@ namespace GridDomain.Scenarios.Runners
                                                                                         string name = null) where TAggregate : class, IAggregate
         {
             var clusterConfig = new ActorSystemConfigBuilder()
-                                .EmitLogLevel(LogEventLevel.Verbose, true)
+                                .EmitLogLevel(LogEventLevel.Verbose, true, typeof(TestSerilogLoggerActor))
                                 .DomainSerialization()
                                 .SqlPersistence(new DefaultNodeDbConfiguration(sqlPersistenceConnectionString))
                                 .Cluster(name ?? "ClusterAggregateScenario" + typeof(TAggregate).BeautyName())
@@ -107,13 +107,13 @@ namespace GridDomain.Scenarios.Runners
         public static async Task<IAggregateScenarioRun<TAggregate>> Cluster<TAggregate>(this IAggregateScenarioRunBuilder<TAggregate> builder,
                                                                                         IDomainConfiguration domainConfig,
                                                                                         Func<ActorSystem,LoggerConfiguration> logConfigurationFactory = null,
-                                                                                        int autoSeeds = 2,
-                                                                                        int workers = 2,
+                                                                                        int autoSeeds = 1,
+                                                                                        int workers = 1,
                                                                                         string name = null) where TAggregate : class, IAggregate
         {
 
             var clusterConfig = new ActorSystemConfigBuilder()
-                                .EmitLogLevel(LogEventLevel.Verbose, true)
+                                .EmitLogLevel(LogEventLevel.Verbose, true, typeof(TestSerilogLoggerActor))
                                 .DomainSerialization()
                                 .Cluster(name ?? "ClusterAggregateScenario" + typeof(TAggregate).BeautyName())
                                 .AutoSeeds(autoSeeds)
@@ -124,27 +124,32 @@ namespace GridDomain.Scenarios.Runners
                             
             using (var clusterInfo = await clusterConfig.CreateCluster())
             {
-                var nodes = new List<IExtendedGridDomainNode>();
-                foreach (var system in clusterInfo.Systems)
-                {
-                    var ext = system.GetExtension<LoggingExtension>();
-                    var node = new GridNodeBuilder()
-                                                   .Cluster()
-                                                   .ActorSystem(() => system)
-                                                   .DomainConfigurations(domainConfig)
-                                                   .Log(ext.Logger)
-                                                   .Build();
+                var nodes = clusterInfo.Systems.Select(s => BuildGridNode(domainConfig, s)).ToArray();
 
+                foreach (var node in nodes)
+                {
                     await node.Start();
-                    nodes.Add(node);
                 }
-                    
+
                 var runner = new AggregateScenarioClusterInMemoryRunner<TAggregate>(nodes);
 
                 var run = await runner.Run(builder.Scenario);
 
                 return run;
             }
+        }
+
+
+        private static GridClusterNode BuildGridNode(IDomainConfiguration domainConfig, ActorSystem system)
+        {
+            var ext = system.GetExtension<LoggingExtension>();
+            var node = (GridClusterNode) new GridNodeBuilder()
+                                         .Cluster()
+                                         .ActorSystem(() => system)
+                                         .DomainConfigurations(domainConfig)
+                                         .Log(ext.Logger)
+                                         .Build();
+            return node;
         }
     }
 }
