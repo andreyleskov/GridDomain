@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Configuration;
@@ -18,6 +19,7 @@ using GridDomain.Scheduling.Quartz.Configuration;
 using GridDomain.Tests.Common;
 using GridDomain.Tests.Common.Configuration;
 using GridDomain.Transport.Extension;
+using Quartz.Util;
 using Serilog;
 using Serilog.Core;
 using Serilog.Data;
@@ -37,6 +39,17 @@ namespace GridDomain.Tests.Unit
 
         public NodeTestFixture(ITestOutputHelper output, IDomainConfiguration domainConfiguration) : this(output, domainConfiguration:new[] {domainConfiguration}) { }
 
+        public NodeTestFixture(ITestOutputHelper output, string name) : this(output, new AutoTestNodeConfiguration(name:Slugify(name))) { }
+
+        public NodeTestFixture(ITestOutputHelper output, IDomainConfiguration domainConfiguration, string name):
+            this(output, new AutoTestNodeConfiguration(name:Slugify(name)), new[] {domainConfiguration}) { }
+        
+        private static string Slugify(string text)
+        {
+            var matches = Regex.Matches(text, "[a-zA-Z0-9]+");
+            return String.Join("-",matches);
+        }
+        
         public NodeTestFixture(ITestOutputHelper output,
                                NodeConfiguration cfg=null,
                                IDomainConfiguration[] domainConfiguration = null,

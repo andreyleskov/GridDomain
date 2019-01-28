@@ -20,7 +20,7 @@ namespace GridDomain.Tests.Unit.MessageWaiting
             _transport = new LocalAkkaEventBusTransport(Sys);
             var waiter = new MessagesWaiter(Sys,_transport,TimeSpan.FromSeconds(2));
 
-            waiter.Expect<string>(m => m.Like("Msg"));
+            waiter.Expect<string>(m => m.Contains("Msg"));
             _results = waiter.Start(TimeSpan.FromSeconds(3));
         }
 
@@ -35,11 +35,11 @@ namespace GridDomain.Tests.Unit.MessageWaiting
             var e = Assert.Throws<AggregateException>(() => _results.Result.Message<string>());
             Assert.IsAssignableFrom<TimeoutException>(e.InnerException);
         }
-
+                                    
         [Fact]
         public void Message_satisfying_filter_should_be_received()
         {
-            _transport.Publish("TestMsg",MessageMetadata.Empty);
+            _transport.Publish("TestMsg", MessageMetadata.Empty);
             Assert.Equal("TestMsg", _results.Result.Message<string>());
         }
 

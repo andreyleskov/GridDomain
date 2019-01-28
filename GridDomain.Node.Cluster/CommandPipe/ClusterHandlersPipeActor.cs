@@ -26,7 +26,7 @@ namespace GridDomain.Node.Cluster.CommandPipe {
         public DICellActor(string residentName=null)
         {
             _handler = new Lazy<IActorRef>(()=>Context.ActorOf(Context.System.DI()
-                                                                      .Props<TResident>(),residentName ?? "Resident"));
+                                                                      .Props<TResident>(),residentName ?? Self.Path.Name));
         }
 
         protected override void OnReceive(object message)

@@ -19,7 +19,7 @@ namespace GridDomain.Tests.Unit
     {
         private readonly BalloonDomainConfiguration _balloonDomainConfiguration;
 
-        public BalloonFixture(ITestOutputHelper output, IQuartzConfig config = null):base(output)
+        public BalloonFixture(ITestOutputHelper output, IQuartzConfig config = null,string name=null):base(output, name)
         {
             this.EnableScheduling(config);
             _balloonDomainConfiguration = new BalloonDomainConfiguration();

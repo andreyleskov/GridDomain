@@ -7,7 +7,8 @@ namespace GridDomain.Tests.Unit.Cluster.CommandsExecution
         When_execute_command_without_explicit_timeout_Then_wait_should_use_default_timeout
     {
         public Cluster_When_execute_command_without_explicit_timeout_Then_wait_should_use_default_timeout(ITestOutputHelper output)
-            :base(new NodeTestFixture(output).Clustered()){}
-     
+            : base(new NodeTestFixture(output,
+                                       nameof(Cluster_When_execute_command_without_explicit_timeout_Then_wait_should_use_default_timeout))
+                       .Clustered()) { }
     }
 }

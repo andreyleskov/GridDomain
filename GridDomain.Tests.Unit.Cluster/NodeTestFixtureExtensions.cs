@@ -13,7 +13,8 @@ namespace GridDomain.Tests.Unit.Cluster
             fxt.NodeBuilder = new ClusterNodeBuilder((GridNodeBuilder)fxt.NodeBuilder);
             fxt.NodeBuilder.Transport(sys => sys.InitDistributedTransport());
             fxt.TestNodeBuilder = (n, kit) => new TestClusterNode((GridClusterNode) n, kit);
-
+            fxt.LogToFile(fxt.NodeConfig.Name);
+            
             return fxt;
         }
     }

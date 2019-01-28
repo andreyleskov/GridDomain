@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using GridDomain.CQRS;
 using GridDomain.Node.AkkaMessaging.Waiting;
+using GridDomain.Tests.Common;
 using GridDomain.Tests.Unit.BalloonDomain;
 using GridDomain.Tests.Unit.BalloonDomain.Configuration;
 using GridDomain.Tests.Unit.BalloonDomain.Events;
@@ -19,7 +20,7 @@ namespace GridDomain.Tests.Unit.CommandsExecution {
         [Fact]
         public async Task When_aggregate_await_async_emit_produced_events_applied_to_state()
         {
-            var asyncCommand = new DoubleIncreaseTitleCommand(43, Guid.NewGuid().ToString());
+            var asyncCommand = new DoubleIncreaseTitleCommand(43, "myBalloon");
             var received = new HashSet<string>();
             var waiter = Node.NewWaiter(TimeSpan.FromSeconds(1000)).Expect<BalloonTitleChanged>(e =>
                                                                       {
@@ -36,7 +37,7 @@ namespace GridDomain.Tests.Unit.CommandsExecution {
 
             Assert.Equal(finalValue, event_generated_from_changed_state.Value);
 
-            var sampleAggregate = await Node.LoadAggregateByActor<Balloon>(asyncCommand.AggregateId);
+            var sampleAggregate = await Node.LoadAggregate<Balloon>(asyncCommand.AggregateId);
             Assert.Equal(finalValue, sampleAggregate.Title);
         }
     }

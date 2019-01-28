@@ -11,6 +11,11 @@ namespace GridDomain.Tests.Unit.Cluster.CommandsExecution.ConventionCommands
     public class ClusterConventionAggregateTests:ConventionAggregateTests
     {
         public ClusterConventionAggregateTests(ITestOutputHelper output) :
-            base(new NodeTestFixture(output,new SoftwareDomainConfiguration()).Clustered().PrintSystemConfig()) { }
+            base(new NodeTestFixture(output,
+                                     new SoftwareDomainConfiguration(),
+                                     nameof(ClusterConventionAggregateTests))
+                 .Clustered()
+                 .PrintSystemConfig()
+                 ) { }
     }
 }
